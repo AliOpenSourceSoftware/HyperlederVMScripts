@@ -1,0 +1,47 @@
+cd /tmp
+mkdir $HOME/.fabric-repo
+mkdir -p  go/src/github.com/hyperledger
+tar -xzvf $HOME/.fabric-repo/fabric-repo.tar.gz -C /tmp
+cd go/src/github.com/hyperledger
+git clone https://github.com/hyperledger/fabric-ca.git
+
+export GOPATH=/tmp/go
+git clone https://github.com/hyperledger/fabric.git
+git clone https://github.com/hyperledger/fabric-cli.git
+
+cd fabric
+git checkout release-1.4
+make release
+
+cd ../fabric-ca
+git checkout release-1.4
+make fabric-ca-server fabric-ca-client
+
+cd ../fabric-cli
+make
+
+
+mkdir $HOME/.fabric-repo
+sudo rm -rf /usr/lib/hyperledger/fabric
+
+sudo mkdir -p /usr/lib/hyperledger/fabric
+
+sudo cp -r /tmp/go/src/github.com/hyperledger/fabric/release/linux-amd64  /usr/lib/hyperledger/fabric/release-1.4
+
+sudo cp -r /tmp/go/src/github.com/hyperledger/fabric-ca/bin/*  /usr/lib/hyperledger/fabric/release-1.4/bin/
+sudo cp -r /tmp/go/src/github.com/hyperledger/fabric-cli/bin/*  /usr/lib/hyperledger/fabric/release-1.4/bin/
+sudo ln -s /usr/lib/hyperledger/fabric/release-1.4/bin /usr/lib/hyperledger/fabric/bin
+
+
+    tar -czvf $HOME/.fabric-repo/fabric-repo.tar.gz /tmp/go/src/github.com/hyperledger
+
+
+
+## sudo rm -rf /tmp/go
+
+sudo echo "export PATH=/usr/lib/hyperledger/fabric/bin:${PATH}" >> /etc/profile
+
+
+
+
+

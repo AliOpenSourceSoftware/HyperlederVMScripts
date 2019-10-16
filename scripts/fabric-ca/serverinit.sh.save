@@ -1,0 +1,163 @@
+#!/bin/bash
+echo "test"
+
+TEMP_PATH={pwd}
+
+function printHelp() {
+  echo " Usage : .  serverinit.sh  -u <adminusername> -p <adminpassword>  <options>"
+  echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
+  echo "    -u username"
+  echo "    -p password"
+  echo "    -notls  Disable TLS on listening port"
+  echo "    -port Listening port"
+  echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
+  echo "    -d <delay> - delay duration in seconds (defaults to 3)"
+  echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
+  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
+  echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
+  echo "    -n - do not deploy chaincode (abstore chaincode is deployed by default)"
+  echo "    -v - verbose mode"
+
+}
+
+TEMP_PORT=0
+function EnvSetup(){
+  echo "Checking and configureing environment"
+  FABRIC_CA_SERVER_HOME="${FABRIC_CA_SERVER_HOME:-$HOME/fabric-ca/server}"
+
+  echo "server home -> " ${FABRIC_CA_SERVER_HOME}
+  echo "server listen port -> "${FABRIC_CA_SERVER_LISTEN_PORT}
+  echo "Done environment setup ... "
+
+}
+
+function RemoveCerts(){
+  read -p "Would you like to delte the old certificates ? [y/n] " ans
+  case $ans in
+  y | Y )
+    echo "Confirmed deletion of old certificates"
+    cd $FABRIC_CA_SERVER_HOME
+    rm -f ca-cert.pem
+    ;;
+  n | N)
+    echo "Using pre exisiting certificates"
+    ;;
+  *)
+    RemoveCerts
+    ;;
+  esac
+}
+
+
+function RemoveDBConfig(){
+read -p "Would you like to delete the current db config file? [y/n"] ans
+case $ans in 
+  y | Y)
+    echo "Confirmed deletion of old database configuration"
+    cd $FABRIC_CA_SERVER_HOME
+    rm fabric-ca-server.db
+    ;;
+  n | N)
+    echo "Using existing database configuration"
+    ;;
+  * )
+    RemoveDBConfig
+    ;;
+  esac
+}
+
+RemoveDBConfig
+
+function RemoveKeys(){
+read -p "Would you like to delete the exisiting key files?? [y/n] " ans
+case $ans in
+y | Y)
+ echo "Confirmed deletion of current keys"
+ cd $FABRIC_CA_SERVER_HOME
+ rm -rf msp
+ rm IssuerRevocationPublicKey
+ rm IssuerPublicKey
+ ;;
+n | N)
+  echo "Using existinng keys"
+  ;;
+
+* )
+ RemoveKeys
+;;
+esac
+}
+RemoveKeys
+
+function PurgeConfigYaml(){
+read -p "Would you like to force deletion of the current fabric-ca-server.yaml file ?? [y|n]" ans
+case $ans in
+y | Y)
+  cd  $FABRIC_CA_SERVER_HOME
+  rm -f fabric-ca-server-config.yaml
+  ;;
+N | N)
+  echo  "Skipping"
+  ;;
+* )
+ PurgeServerConfigYaml
+ ;;
+esac
+}
+PurgeConfigYaml
+OPTIND=1
+while getopts ":h?c:p:u:l:-:" opt; do
+  case "${opt}" in
+  h | \?)
+    printHelp
+    ;;
+  c)
+    CHANNEL_NAME=${OPTARG}
+    echo "Using channel name $CHANNEL_NAME"
+    ;;
+  p)
+    PASSWORD=${OPTARG}
+    echo -e "Using password $PASSWORD"
+    ;;
+  u)
+    USERNAME=${OPTARG}
+    echo -e "Using  username $USERNAME"
+    ;;
+  l)
+    TEMP_PORT=${OPTAR}
+    FABRIC_CA_SERVER_LISTEN_PORT=${OPTARG}
+    echo  "${FABRIC_CA_LISTENPORT}"
+    ;;
+  -)
+    case ${OPTARG} in
+      "tls.disable")
+        echo  "HTTPS will be disabled"
+        TEMP_TLS=1
+    ;;
+    esac
+  esac
+done
+TEMP_TLS=0
+
+function InitilizeServer(){
+ EnvSetup
+ cd $FABRIC_CA_SERVER_HOME
+
+echo $TEM_TLS
+case $TEMP_TLS in
+0 )
+fabric-ca-server init -b ${USERNAME}:${PASSWORD} --home "${FABRIC_CA_SERVER_HOME}" -p ${FABRIC_CA_SERVER_LISTEN_PORT} 
+echo "fabric-ca-server init tls.enable -b ${USERNAME}:${PASSWORD} -- \"${FABRIC_CA_SERVER_HOME}\" --port ${FABRIC_CA_SERVER_LISTEN_PORT}"
+;;
+1 )
+
+fabric-ca-server init -b ${USERNAME}:${PASSWORD} --home "${FABRIC_CA_SERVER_HOME}" -p ${FABRIC_CA_SERVER_LISTEN_PORT}
+;;
+esac
+}
+
+
+
+InitilizeServer
+cd ${TEMP_PATH}
