@@ -18,7 +18,7 @@ function Usage() {
   echo "    -p admin password - defaults to \"PASSWORD\""
   echo "    --tls.disabled  Disable TLS on listening port (Always enabled by default)"
   echo "    --port Listening port"
-  echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
+  echo "    t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
@@ -34,7 +34,6 @@ function EnvSetup(){
   echo "Checking and configureing environment"
   if ! [ $FABRIC_CA_SERVER_HOME ]; then
   FABRIC_CA_SERVER_HOME="${FABRIC_CA_SERVER_HOME:-$HOME/fabric-ca/server}"
-  sudo mkdir -p $FABRIC_CA_SERVER_HOME
   sudo chown workstation /etc/profile
   sudo echo "FABRIC_CA_SERVER_HOME=$FABRIC_CA_SERVER_HOME" >> /etc/profile
   sudo chown root /etc/profile
@@ -44,7 +43,12 @@ function EnvSetup(){
   sudo echo  "FABRIC_CA_SERVER_LISTEN_PORT=7054" >> /etc/profile
   sudo chown root /etc/profile
   fi
+  if ! [ $FABRIC_CA_SERVER_LISTEN_ADDRESS ]; then
+FABRIC_CA_SERVER_LISTEN_ADDRESS=1
+fi
+
   source /etc/profile
+  mkdir -p $FABRIC_CA_SERVER_HOME
   echo "server home -> " ${FABRIC_CA_SERVER_HOME}
   echo "server listen port -> "${FABRIC_CA_SERVER_LISTEN_PORT}
   echo "Done environment setup ... "
@@ -67,7 +71,7 @@ function RemoveCerts(){
     ;;
   esac
 }
-#RemoveCerts
+RemoveCerts
 
 function RemoveDBConfig(){
 read -p "Would you like to delete the current db config file? [y/n"] ans
@@ -86,7 +90,7 @@ case $ans in
   esac
 }
 
-#RemoveDBConfig
+RemoveDBConfig
 
 function RemoveKeys(){
   read -p "Would you like to delete the exisiting key files?? [y/n] " ans
@@ -107,7 +111,7 @@ function RemoveKeys(){
  ;;
 esac
 }
-#RemoveKeys
+RemoveKeys
 
 function PurgeConfigYaml(){
 read -p "Would you like to force deletion of the current fabric-ca-server.yaml file ?? [y|n]" ans
@@ -126,7 +130,7 @@ esac
 
 }
 TEMP_TLS=0
-#PurgeConfigYaml
+PurgeConfigYaml
 OPTIND=1
 
 
@@ -190,14 +194,15 @@ function InitilizeServer(){
 echo -e "temp tls = $TEMP_TLS"
 
 case  "$TEMP_TLS" in
-0 ) fabric-ca-server init tls.enabled  -b ${USERNAME}:${PASSWORD} --home $FABRIC_CA_SERVER_HOME -p ${FABRIC_CA_SERVER_LISTEN_PORT} 
- echo "fabric-ca-server init tls.enabled -b ${USERNAME}:${PASSWORD} --home \"${FABRIC_CA_SERVER_HOME}\" --port ${FABRIC_CA_SERVER_LISTEN_PORT}"
+0 )
+ fabric-ca-server init --tls.enabled  -b USERNAME:PASSWORD  -p $FABRIC_CA_SERVER_LISTEN_PORT --address $(ip4)
+ echo "fabric-ca-server init tls.enabled -b USERNAME:PASSWORD --home \"${FABRIC_CA_SERVER_HOME}\" --port ${FABRIC_CA_SERVER_LISTEN_PORT} -address $(ip4)"
  echo "*****************************************************" 
  echo "fabric-ca-server is ready to started with TLS enabled"
  echo "******************************************************"
  ;;
 1 )
-  echo fabric-ca-server init -b ${USERNAME}:${PASSWORD} --home "${FABRIC_CA_SERVER_HOME}" -p ${FABRIC_CA_SERVER_LISTEN_PORT}
+  echo fabric-ca-server init -b $USERNAME:$PASSWORD --home $FABRIC_CA_SERVER_HOME -p $FABRIC_CA_SERVER_LISTEN_PORT}
 echo "************************************"
 echo "fabric-ca-server started without TLS"
 echo "************************************"
