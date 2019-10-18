@@ -18,14 +18,6 @@ function Usage() {
   echo "    -p admin password - defaults to \"PASSWORD\""
   echo "    --tls.disabled  Disable TLS on listening port (Always enabled by default)"
   echo "    --port Listening port"
-  echo "    t <timeout> - CLI timeout duration in seconds (defaults to 10)"
-  echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
-  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
-  echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
-  echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
-  echo "    -n - do not deploy chaincode (abstore chaincode is deployed by default)"
-  echo "    -v - verbose mode"
 
 }
 
