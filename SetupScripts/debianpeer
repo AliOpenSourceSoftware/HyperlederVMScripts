@@ -1,3 +1,4 @@
+#!/bin/bash
 cd /tmp
 mkdir $HOME/.fabric-repo
 mkdir -p  go/src/github.com/hyperledger
@@ -21,27 +22,24 @@ cd ../fabric-cli
 make
 
 
-mkdir $HOME/.fabric-repo
-sudo rm -rf /usr/lib/hyperledger/fabric
-
 sudo mkdir -p /usr/lib/hyperledger/fabric
+sudo mkdir -p /usr/lib/hyperledger/fabric-ca
+sudo mkdir -p /usr/lib/hyperledger/fabric-cli
 
 sudo cp -r /tmp/go/src/github.com/hyperledger/fabric/release/linux-amd64  /usr/lib/hyperledger/fabric/release-1.4
-
 sudo cp -r /tmp/go/src/github.com/hyperledger/fabric-ca/bin/*  /usr/lib/hyperledger/fabric/release-1.4/bin/
-sudo cp -r /tmp/go/src/github.com/hyperledger/fabric-cli/bin/*  /usr/lib/hyperledger/fabric/release-1.4/bin/
-sudo ln -s /usr/lib/hyperledger/fabric/release-1.4/bin /usr/lib/hyperledger/fabric/bin
+sudo cp -r /tmp/go/src/github.com/hyperledger/fabric-cli/bin/*  /usr/lib/hyperledger/fabric-cli/bin/
 
+sudo ln -s /usr/lib/hyperledger/fabric/release-1.4/bin/* /usr/lib/hyperledger/fabric/bin
+sudo ln -s /usr/lib/hyperledger/fabric-ca/release-1.4/bin/* /user/lib/hyperledger/fabric-ca/bin
 
-    tar -czvf $HOME/.fabric-repo/fabric-repo.tar.gz /tmp/go/src/github.com/hyperledger
-
-
-
-## sudo rm -rf /tmp/go
-
+sudo echo "## HYPERLEDGER PATHS"
 sudo echo "export PATH=/usr/lib/hyperledger/fabric/bin:${PATH}" >> /etc/profile
-
-
-
-
-
+sudo echo "export PATH=/usr/lib/hyperledger/fabric-ca/bin:${PATH}" >> /etc/profile
+sudo echo "export PATH=/usr/lib/hyperledger/fabric-cli/bin:${PATH}" >> /etc/profile
+sudo echo "export FABRIC_CA_SERVER_HOME=/home/hyperledger/fabric-ca/server" >> /etc/profile
+sudo echo "export FABRIC_CA_CLIENT_HOME=/home/hyperledger/fabric-ca/client" >> /etc/profile
+sudo echo "export FABRIC_CFG_PATH=/home/hyperledger/config" >> /etc/profile
+mkdir -p $FABRIC_CA_SERVER_HOME
+mkdir -p $FABRIC_CA_CLIENT_HOME
+mkdir -p $FABRIC_CFG_PATH
